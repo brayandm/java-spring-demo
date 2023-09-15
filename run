@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Export environment variables from the .env file
 export $(grep -v '^#' .env | xargs)
 
-./gradlew bootRun
+# Run the continuous compilation in the background and save its PID
+./gradlew -t :bootJar &
+GRADLE_BACKGROUND_PID=$!
+
+# Define a trap function to clean up both processes on exit
+trap "kill $GRADLE_BACKGROUND_PID; exit" INT TERM EXIT
+
+# Run the application in the foreground and save its PID
+./gradlew bootRun 
